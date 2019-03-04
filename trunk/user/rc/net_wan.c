@@ -918,7 +918,8 @@ start_wan(void)
 		{
 			char *proto_desc, *ppp_ifname = IFNAME_PPP;
 			int i_pppoe, i_pppoe_man, i_demand;
-			
+			int wan_auth_mode = 0;
+
 			if (wan_proto == IPV4_WAN_PROTO_PPPOE)
 				proto_desc = "PPPoE";
 			else if (wan_proto == IPV4_WAN_PROTO_PPTP)
@@ -932,7 +933,12 @@ start_wan(void)
 			
 			i_pppoe = (wan_proto == IPV4_WAN_PROTO_PPPOE) ? 1 : 0;
 			i_pppoe_man = get_wan_unit_value_int(unit, "pppoe_man");
-			
+
+			/* Start eapol authenticator */
+			wan_auth_mode = get_wan_unit_value_int(unit, "auth_mode");
+			if (!i_pppoe && wan_auth_mode > 1)
+				start_auth_eapol(wan_ifname, unit, wan_auth_mode - 2);
+
 			if (!i_pppoe || i_pppoe_man == 1)
 				launch_wanx(wan_ifname, unit, !i_pppoe, 0);
 			else if (i_pppoe && i_pppoe_man == 2)
